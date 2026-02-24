@@ -1224,86 +1224,9 @@ async function scrapeRecipe() {
       pageText = `Could not fetch page content. URL: ${url}`;
     }
 
-    const prompt = `You are a recipe extraction assistant. Given the following text scraped from a recipe webpage, extract structured recipe information.
-
-URL: ${url}
-Page content (truncated):
-${pageText}
-
-Return a JSON object with EXACTLY this structure (no markdown, just raw JSON):
-{
-  "title": "Recipe name",
-  "source_url": "${url}",
-  "source_name": "Website name",
-  "active_time_minutes": 20,
-  "passive_time_minutes": 45,
-  "servings": 4,
-  "tags": ["tag1", "tag2"],
-  "ingredient_groups": [
-    {
-      "section": "Produce",
-      "items": [{"qty": "2 cloves", "item": "garlic"}, {"qty": "1", "item": "onion"}]
-    },
-    {
-      "section": "Meat & Seafood",
-      "items": [{"qty": "1 lb", "item": "chicken thighs"}]
-    },
-    {
-      "section": "Pantry",
-      "items": [{"qty": "2 cups", "item": "all-purpose flour"}, {"qty": "2 tbsp", "item": "olive oil"}]
-    },
-    {
-      "section": "Spices & Seasonings",
-      "items": [{"qty": "1 tsp", "item": "salt"}, {"qty": "1/2 tsp", "item": "black pepper"}]
-    },
-    {
-      "section": "Dairy",
-      "items": [{"qty": "1 cup", "item": "heavy cream"}]
-    }
-  ],
-  "steps": [
-    "Step one description.",
-    "Step two description."
-  ],
-  "comment_highlights": [
-    {"type": "worked", "text": "What worked for someone"},
-    {"type": "didnt", "text": "What did not work"},
-    {"type": "tip", "text": "A helpful tip"}
-  ]
-}
-
-For active_time_minutes: time spent actively cooking/prepping.
-For passive_time_minutes: time for waiting (marinating, baking, chilling, resting).
-For comment_highlights: extract 2-5 genuinely useful insights from user comments if visible, otherwise leave as empty array.
-Tags should include cuisine type, main ingredient, dietary info, meal type, etc.
-For ingredient_groups: group all ingredients into logical sections. Use only the sections that apply; omit empty ones. Good section names: Produce, Meat & Seafood, Dairy, Pantry, Spices & Seasonings, Canned & Jarred, Bread & Baked Goods, Frozen, Other. Every ingredient must appear in exactly one section.
-Return only valid JSON.`;
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || 'API error');
-    }
-
-    const data = await res.json();
-    let text = data.content[0].text.trim();
-    text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '');
-
-    const recipe = JSON.parse(text);
+    const sourceName = (() => { try { return new URL(url).hostname.replace('www.', ''); } catch(e) { return ''; } })();
+    const recipe = await parseRecipeFromText(pageText, url, sourceName);
+    if (!recipe) return;
     recipe.id = Date.now().toString();
     recipe.added_at = new Date().toISOString();
 
