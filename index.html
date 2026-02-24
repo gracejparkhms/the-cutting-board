@@ -628,6 +628,80 @@
     color: var(--dark);
   }
 
+  /* Import mode toggle */
+  .import-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .import-tab {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 6px 14px;
+    cursor: pointer;
+    color: var(--dim);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: Arial, sans-serif;
+  }
+
+  .import-tab.active {
+    color: var(--black);
+    border-bottom-color: var(--black);
+  }
+
+  .import-tab:hover { color: var(--dark); }
+
+  #paste-row {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #paste-row textarea {
+    width: 100%;
+    height: 100px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    background: var(--off-white);
+    color: var(--black);
+    outline: none;
+    resize: vertical;
+  }
+
+  #paste-row textarea:focus { border-color: var(--dark); }
+
+  #paste-row-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  #paste-source-input {
+    flex: 1;
+    min-width: 150px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    background: var(--off-white);
+    color: var(--black);
+    outline: none;
+  }
+
+  #paste-source-input:focus { border-color: var(--dark); }
+
   /* Edit mode */
   .edit-field {
     width: 100%;
@@ -796,7 +870,7 @@
   <!-- SIDEBAR -->
   <div id="sidebar">
     <div id="sidebar-header">
-      <h1>Recipe Library</h1>
+      <h1>The Cutting Board</h1>
       <p id="recipe-count-label">0 recipes saved</p>
     </div>
 
@@ -804,13 +878,13 @@
       <input type="text" id="search-input" placeholder="Search by name or ingredient" oninput="filterRecipes()">
       <div id="filter-row">
         <select id="filter-time" onchange="filterRecipes()">
-          <option value="">Any time</option>
+          <option value="">nowhere to be</option>
           <option value="30">Under 30 min</option>
           <option value="60">Under 1 hour</option>
           <option value="120">Under 2 hours</option>
         </select>
         <select id="sort-by" onchange="filterRecipes()">
-          <option value="recent">Recent</option>
+          <option value="recent">Recently Added</option>
           <option value="alpha">A-Z</option>
           <option value="time">Quickest</option>
         </select>
@@ -828,10 +902,21 @@
   <div id="main">
     <div id="add-panel">
       <h2>Add a Recipe</h2>
+      <div class="import-tabs">
+        <button class="import-tab active" id="tab-url" onclick="switchImportTab('url')">URL</button>
+        <button class="import-tab" id="tab-paste" onclick="switchImportTab('paste')">Paste Text</button>
+        <button class="import-tab" id="tab-manual" onclick="openManualEntry()">Manual</button>
+      </div>
       <div id="url-row">
         <input type="url" id="url-input" placeholder="Paste a recipe URL">
-        <button class="btn btn-primary" id="scrape-btn" onclick="scrapeRecipe()">Import Recipe</button>
-        <button class="btn" onclick="openManualEntry()">Add Manually</button>
+        <button class="btn btn-primary" id="scrape-btn" onclick="scrapeRecipe()">Import</button>
+      </div>
+      <div id="paste-row">
+        <textarea id="paste-text" placeholder="Paste the full recipe text here - ingredients, steps, comments, everything you can select from the page..."></textarea>
+        <div id="paste-row-actions">
+          <input id="paste-source-input" type="url" placeholder="Source URL (optional)">
+          <button class="btn btn-primary" id="paste-btn" onclick="pasteRecipe()">Import</button>
+        </div>
       </div>
       <span id="api-key-toggle" onclick="toggleApiKey()">Set API key</span>
       <div id="api-key-row">
@@ -842,7 +927,7 @@
     </div>
 
     <div id="welcome-screen">
-      <p>Paste any recipe URL above to scrape the cutting board for ingredients, instructions, and community modifications.</p>
+      <p>Add a recipe above.</p>
     </div>
 
     <div id="recipe-view" style="display:none"></div>
@@ -984,6 +1069,127 @@ function toggleApiKey() {
   row.style.display = row.style.display === 'flex' ? 'none' : 'flex';
 }
 
+function switchImportTab(mode) {
+  document.getElementById('url-row').style.display = mode === 'url' ? 'flex' : 'none';
+  document.getElementById('paste-row').style.display = mode === 'paste' ? 'flex' : 'none';
+  document.getElementById('tab-url').classList.toggle('active', mode === 'url');
+  document.getElementById('tab-paste').classList.toggle('active', mode === 'paste');
+  clearStatus();
+}
+
+async function parseRecipeFromText(pageText, sourceUrl, sourceName) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    setStatus('Please set your Anthropic API key first.', 'error');
+    toggleApiKey();
+    return null;
+  }
+
+  const prompt = `You are a recipe extraction assistant. Your job is to faithfully extract a recipe exactly as written by the author, then separately capture any modifications suggested in the comments.
+
+URL: ${sourceUrl || 'unknown'}
+Page content:
+${pageText.substring(0, 12000)}
+
+Return a JSON object with EXACTLY this structure (no markdown, just raw JSON):
+{
+  "title": "Recipe name",
+  "source_url": "${sourceUrl || ''}",
+  "source_name": "${sourceName || ''}",
+  "active_time_minutes": 20,
+  "passive_time_minutes": 45,
+  "servings": 4,
+  "tags": ["tag1", "tag2"],
+  "ingredient_groups": [
+    {
+      "section": "Produce",
+      "items": [{"qty": "2 cloves", "item": "garlic"}, {"qty": "1", "item": "onion"}]
+    },
+    {
+      "section": "Pantry",
+      "items": [{"qty": "2 cups", "item": "all-purpose flour"}]
+    },
+    {
+      "section": "Spices & Seasonings",
+      "items": [{"qty": "1 tsp", "item": "salt"}]
+    }
+  ],
+  "steps": [
+    "Step one, copied verbatim or near-verbatim from the recipe.",
+    "Step two."
+  ],
+  "comment_highlights": [
+    {"type": "worked", "text": "A substitution or addition that commenters said improved the dish"},
+    {"type": "didnt", "text": "Something commenters tried that did not work"},
+    {"type": "tip", "text": "A technique or timing tip from commenters"}
+  ]
+}
+
+CRITICAL RULES:
+1. Ingredients: Copy the official ingredient list EXACTLY as written by the recipe author. Do not add, remove, or alter any ingredient.
+2. Steps: Copy the official instructions faithfully. Do not incorporate comment suggestions into the steps.
+3. comment_highlights: ONLY put content here from the comments/reviews section. Extract 2-6 useful insights.
+4. Ingredient groups: Group all official ingredients into logical sections. Good section names: Produce, Meat & Seafood, Dairy, Pantry, Spices & Seasonings, Canned & Jarred, Bread & Baked Goods, Frozen, Other.
+5. Tags: cuisine type, main ingredient, dietary info, meal type.
+6. active_time_minutes: hands-on time. passive_time_minutes: waiting time.
+Return only valid JSON.`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || 'API error');
+  }
+
+  const data = await res.json();
+  let text = data.content[0].text.trim();
+  text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '');
+  return JSON.parse(text);
+}
+
+async function pasteRecipe() {
+  const pageText = document.getElementById('paste-text').value.trim();
+  if (!pageText) { setStatus('Please paste some recipe text first.', 'error'); return; }
+
+  const sourceUrl = document.getElementById('paste-source-input').value.trim();
+  const sourceName = sourceUrl ? new URL(sourceUrl.startsWith('http') ? sourceUrl : 'https://' + sourceUrl).hostname.replace('www.', '') : '';
+
+  document.getElementById('paste-btn').disabled = true;
+  setStatus('Parsing the recipe...', 'loading');
+
+  try {
+    const recipe = await parseRecipeFromText(pageText, sourceUrl, sourceName);
+    if (!recipe) return;
+    recipe.id = Date.now().toString();
+    recipe.added_at = new Date().toISOString();
+    recipes.unshift(recipe);
+    await save(recipe);
+    renderList();
+    showRecipe(recipe.id);
+    document.getElementById('paste-text').value = '';
+    document.getElementById('paste-source-input').value = '';
+    setStatus(`Saved: ${recipe.title}`, 'success');
+    setTimeout(clearStatus, 4000);
+  } catch(e) {
+    setStatus(`Error: ${e.message}`, 'error');
+  } finally {
+    document.getElementById('paste-btn').disabled = false;
+  }
+}
+
 function setStatus(msg, type) {
   const el = document.getElementById('status-msg');
   el.className = type;
@@ -999,13 +1205,6 @@ function clearStatus() {
 async function scrapeRecipe() {
   const url = document.getElementById('url-input').value.trim();
   if (!url) { setStatus('Please enter a recipe URL.', 'error'); return; }
-
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    setStatus('Please set your Anthropic API key first.', 'error');
-    toggleApiKey();
-    return;
-  }
 
   document.getElementById('scrape-btn').disabled = true;
   setStatus('Fetching and parsing the recipe...', 'loading');
