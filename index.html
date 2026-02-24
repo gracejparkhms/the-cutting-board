@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Recipe Library</title>
+<title>The Cutting Board</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -275,8 +275,6 @@
 
   /* Notes panel */
   .notes-panel {
-    position: sticky;
-    top: 0;
     border: 1px solid var(--border);
     background: var(--white);
     padding: 14px;
@@ -293,7 +291,7 @@
 
   .notes-textarea {
     width: 100%;
-    min-height: 180px;
+    min-height: 80px;
     padding: 8px;
     border: 1px solid var(--border);
     font-family: Arial, sans-serif;
@@ -449,7 +447,7 @@
   .rv-source a:hover { color: var(--link-hover); }
 
   .rv-meta {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
     margin-bottom: 28px;
     border: 1px solid var(--border);
