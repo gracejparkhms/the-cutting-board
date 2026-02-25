@@ -88,6 +88,8 @@
 
   #filter-row { display: flex; gap: 8px; }
   #filter-row select { flex: 1; }
+  #filter-row .filter-col { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .filter-label { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: var(--dim); }
 
   #recipe-list {
     flex: 1;
@@ -626,6 +628,138 @@
     color: var(--dark);
   }
 
+  /* Login screen */
+  #login-screen {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    color: var(--dim);
+  }
+
+  #login-screen h2 {
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--black);
+  }
+
+  #login-screen p {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--dim);
+  }
+
+  .btn-github {
+    background: var(--black);
+    color: var(--white);
+    border-color: var(--black);
+    padding: 11px 24px;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  .btn-github:hover { background: var(--dark); border-color: var(--dark); }
+
+  #user-bar {
+    display: none;
+    font-size: 11px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #user-bar a {
+    color: var(--link);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  /* Heat sliders */
+  .heat-sliders {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .heat-slider-block {
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .heat-slider-title {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--dim);
+    margin-bottom: 10px;
+  }
+
+  .heat-slider-wrap {
+    position: relative;
+    padding-bottom: 18px;
+  }
+
+  .heat-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    border-radius: 0;
+    outline: none;
+    cursor: pointer;
+    background: linear-gradient(to right, var(--black) 0%, var(--black) 0%, var(--light) 0%);
+  }
+
+  .heat-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--black);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 1px var(--black);
+  }
+
+  .heat-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--black);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 1px var(--black);
+  }
+
+  .heat-slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+
+  .heat-slider-labels span {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--dim);
+    text-align: center;
+    width: 20%;
+  }
+
+  .heat-slider-labels span:first-child { text-align: left; }
+  .heat-slider-labels span:last-child { text-align: right; }
+
   /* Import mode toggle */
   .import-tabs {
     display: flex;
@@ -873,25 +1007,32 @@
     </div>
 
     <div id="search-filter">
-      <input type="text" id="search-input" placeholder="Search by name or ingredient" oninput="filterRecipes()">
+      <input type="text" id="search-input" placeholder="keyword search" oninput="filterRecipes()">
       <div id="filter-row">
-        <select id="filter-time" onchange="filterRecipes()">
-          <option value="">nowhere to be</option>
-          <option value="30">Under 30 min</option>
-          <option value="60">Under 1 hour</option>
-          <option value="120">Under 2 hours</option>
-        </select>
-        <select id="sort-by" onchange="filterRecipes()">
-          <option value="recent">Recently Added</option>
-          <option value="alpha">A-Z</option>
-          <option value="time">Quickest</option>
-        </select>
+        <div class="filter-col">
+          <span class="filter-label">time</span>
+          <select id="filter-time" onchange="filterRecipes()">
+            <option value="">nowhere to be</option>
+            <option value="30">under 30 min</option>
+            <option value="60">under 1 hour</option>
+            <option value="120">under 2 hours</option>
+          </select>
+        </div>
+        <div class="filter-col">
+          <span class="filter-label">sort by</span>
+          <select id="sort-by" onchange="filterRecipes()">
+            <option value="recent">recently added</option>
+            <option value="geography">geography</option>
+            <option value="heat_spice">heat (spice)</option>
+            <option value="heat_temp">heat (temperature)</option>
+          </select>
+        </div>
       </div>
     </div>
 
     <div id="recipe-list">
       <div class="empty-state">
-        <p>Library empty.</p>
+        <p>Library empty</p>
       </div>
     </div>
   </div>
@@ -922,10 +1063,20 @@
         <span>Saved locally in your browser</span>
       </div>
       <div id="status-msg"></div>
+      <div id="user-bar">
+        <span id="user-label"></span>
+        <a onclick="signOut()">Sign out</a>
+      </div>
+    </div>
+
+    <div id="login-screen" style="display:none">
+      <h2>The Cutting Board</h2>
+      <p>Sign in to access your recipe library</p>
+      <button class="btn btn-github" onclick="signInWithGitHub()">Sign in with GitHub</button>
     </div>
 
     <div id="welcome-screen">
-      <p>Add a recipe above.</p>
+      <p>Add a recipe above</p>
     </div>
 
     <div id="recipe-view" style="display:none"></div>
@@ -961,7 +1112,7 @@
       </div>
       <div>
         <div class="field-label">Tags (comma-separated)</div>
-        <input id="m-tags" placeholder="pasta, vegetarian, weeknight">
+        <input id="m-tags" placeholder="pasta, vegetarian">
       </div>
       <div>
         <div class="field-label">Ingredients (one per line)</div>
@@ -993,23 +1144,61 @@ let recipes = [];
 let activeId = null;
 let currentUserId = null;
 
-// Sign in anonymously - creates a persistent identity stored in localStorage
-// so the same user ID is reused across sessions on the same device
+function signInWithGitHub() {
+  sb.auth.signInWithOAuth({
+    provider: 'github',
+    options: { redirectTo: 'https://gracejparkhms.github.io/recipe-library/' }
+  });
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  currentUserId = null;
+  recipes = [];
+  renderList();
+  document.getElementById('add-panel').style.display = 'none';
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('recipe-view').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('user-bar').style.display = 'none';
+}
+
 async function initAuth() {
-  // Check if we already have a session
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     currentUserId = session.user.id;
+    showAppForUser(session.user);
   } else {
-    // Sign in anonymously
-    const { data, error } = await sb.auth.signInAnonymously();
-    if (error) {
-      console.error('Auth error:', error);
-      setStatus('Could not connect to database.', 'error');
-      return;
-    }
-    currentUserId = data.user.id;
+    showLoginScreen();
   }
+
+  // Listen for auth changes (e.g. after OAuth redirect)
+  sb.auth.onAuthStateChange((_event, session) => {
+    if (session && !currentUserId) {
+      currentUserId = session.user.id;
+      showAppForUser(session.user);
+      load().then(() => {
+        renderList();
+        if (recipes.length > 0) showRecipe(recipes[0].id);
+      });
+    }
+  });
+}
+
+function showLoginScreen() {
+  document.getElementById('add-panel').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('welcome-screen').style.display = 'none';
+}
+
+function showAppForUser(user) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('add-panel').style.display = 'block';
+  document.getElementById('welcome-screen').style.display = 'flex';
+  const userBar = document.getElementById('user-bar');
+  userBar.style.display = 'flex';
+  const label = document.getElementById('user-label');
+  if (label) label.textContent = user.user_metadata?.user_name || user.email || 'Signed in';
 }
 
 async function save(recipe) {
@@ -1035,7 +1224,6 @@ async function deleteFromDb(id) {
 }
 
 async function load() {
-  await initAuth();
   if (!currentUserId) return;
   const { data, error } = await sb
     .from('recipes')
@@ -1057,9 +1245,13 @@ function getApiKey() {
 }
 
 // Init
-load().then(() => {
-  renderList();
-  if (recipes.length > 0) showRecipe(recipes[0].id);
+initAuth().then(() => {
+  if (currentUserId) {
+    load().then(() => {
+      renderList();
+      if (recipes.length > 0) showRecipe(recipes[0].id);
+    });
+  }
 });
 
 function toggleApiKey() {
@@ -1251,27 +1443,50 @@ function renderList() {
   let filtered = recipes.filter(r => {
     const matchText = !search ||
       r.title?.toLowerCase().includes(search) ||
+      r.source_name?.toLowerCase().includes(search) ||
       r.tags?.some(t => t.toLowerCase().includes(search)) ||
-      (r.ingredients?.some(i => (i.item || i).toLowerCase().includes(search)) ||
-       r.ingredient_groups?.some(g => g.items?.some(i => i.item?.toLowerCase().includes(search))));
+      r.steps?.some(s => s.toLowerCase().includes(search)) ||
+      r.ingredients?.some(i => (i.item || i).toLowerCase().includes(search)) ||
+      r.ingredient_groups?.some(g => g.items?.some(i => i.item?.toLowerCase().includes(search)));
     const totalTime = (r.active_time_minutes || 0) + (r.passive_time_minutes || 0);
     const matchTime = !maxTime || totalTime <= maxTime || totalTime === 0;
     return matchText && matchTime;
   });
 
-  if (sortBy === 'alpha') filtered.sort((a,b) => a.title?.localeCompare(b.title));
-  else if (sortBy === 'time') filtered.sort((a,b) => {
-    const ta = (a.active_time_minutes||0)+(a.passive_time_minutes||0);
-    const tb = (b.active_time_minutes||0)+(b.passive_time_minutes||0);
-    return ta - tb;
-  });
+  if (sortBy === 'geography') {
+    // Sort by first geography-related tag alphabetically
+    const geoKeywords = ['italian','french','mexican','japanese','chinese','thai','indian','greek','spanish','american','korean','vietnamese','mediterranean','middle eastern','caribbean'];
+    const getGeo = r => {
+      const tag = (r.tags || []).find(t => geoKeywords.some(k => t.toLowerCase().includes(k)));
+      return tag ? tag.toLowerCase() : 'zzz';
+    };
+    filtered.sort((a,b) => getGeo(a).localeCompare(getGeo(b)));
+  } else if (sortBy === 'heat_spice') {
+    // Sort by spice-related tags: mild -> medium -> hot -> extra hot, untagged last
+    const spiceOrder = ['mild','medium','spicy','hot','extra hot','fiery'];
+    const getSpice = r => {
+      const tag = (r.tags || []).find(t => spiceOrder.some(k => t.toLowerCase().includes(k)));
+      if (!tag) return 99;
+      return spiceOrder.findIndex(k => tag.toLowerCase().includes(k));
+    };
+    filtered.sort((a,b) => getSpice(a) - getSpice(b));
+  } else if (sortBy === 'heat_temp') {
+    // Sort by cooking temperature tags: cold/raw -> room temp -> warm -> hot -> very hot
+    const tempOrder = ['raw','no cook','cold','room temp','warm','low','medium','high','broil','very hot'];
+    const getTemp = r => {
+      const tag = (r.tags || []).find(t => tempOrder.some(k => t.toLowerCase().includes(k)));
+      if (!tag) return 99;
+      return tempOrder.findIndex(k => tag.toLowerCase().includes(k));
+    };
+    filtered.sort((a,b) => getTemp(a) - getTemp(b));
+  }
 
   const list = document.getElementById('recipe-list');
   document.getElementById('recipe-count-label').textContent =
     `${recipes.length} recipe${recipes.length !== 1 ? 's' : ''} saved`;
 
   if (filtered.length === 0) {
-    list.innerHTML = `<div class="empty-state"><p>${recipes.length === 0 ? 'Library empty.' : 'No recipes match your search.'}</p></div>`;
+    list.innerHTML = `<div class="empty-state"><p>${recipes.length === 0 ? 'Library empty' : 'No recipes match your search'}</p></div>`;
     return;
   }
 
@@ -1371,6 +1586,27 @@ function showRecipe(id) {
         ${tags ? `<div class="rv-tags">${tags}</div>` : ''}
         ${metaItems ? `<div class="rv-meta">${metaItems}</div>` : ''}
 
+        <div class="heat-sliders">
+          <div class="heat-slider-block">
+            <div class="heat-slider-title">Spice</div>
+            <div class="heat-slider-wrap">
+              <input type="range" class="heat-slider" id="slider-spice" min="0" max="4" step="1" value="${r.heat_spice !== undefined ? r.heat_spice : 2}" oninput="updateSliderTrack(this)" onchange="saveSlider('${r.id}','heat_spice',this.value)">
+              <div class="heat-slider-labels">
+                <span>none</span><span>mild</span><span>medium</span><span>hot</span><span>fire</span>
+              </div>
+            </div>
+          </div>
+          <div class="heat-slider-block">
+            <div class="heat-slider-title">Temperature</div>
+            <div class="heat-slider-wrap">
+              <input type="range" class="heat-slider" id="slider-temp" min="0" max="4" step="1" value="${r.heat_temp !== undefined ? r.heat_temp : 2}" oninput="updateSliderTrack(this)" onchange="saveSlider('${r.id}','heat_temp',this.value)">
+              <div class="heat-slider-labels">
+                <span>hot!</span><span>warm</span><span>room</span><span>chilled</span><span>cold!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         ${ingredientsHtml ? `
           <div class="rv-section-title">Ingredients</div>
           <p style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Click to check off</p>
@@ -1420,6 +1656,7 @@ function showRecipe(id) {
       </div>
     </div>
   `;
+  initSliderTracks();
 }
 
 function editRecipe(id) {
@@ -1609,6 +1846,23 @@ function removePhoto(event, id, slot) {
   recipes[idx].photos[slot] = null;
   save(recipes[idx]);
   showRecipe(id);
+}
+
+async function updateSliderTrack(el) {
+  const pct = (el.value / el.max) * 100;
+  el.style.background = `linear-gradient(to right, var(--black) ${pct}%, var(--light) ${pct}%)`;
+}
+
+function saveSlider(id, field, value) {
+  const idx = recipes.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  recipes[idx][field] = parseInt(value);
+  save(recipes[idx]);
+}
+
+// Init all slider tracks on page
+function initSliderTracks() {
+  document.querySelectorAll('.heat-slider').forEach(el => updateSliderTrack(el));
 }
 
 async function deleteRecipe(id) {
