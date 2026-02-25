@@ -308,6 +308,93 @@
 
   .notes-textarea:focus { border-color: var(--dark); }
 
+  /* Notes log */
+  .notes-add-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .notes-add-row textarea {
+    flex: 1;
+    padding: 7px 8px;
+    border: 1px solid var(--border);
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--black);
+    background: var(--off-white);
+    outline: none;
+    resize: none;
+    min-height: 56px;
+  }
+
+  .notes-add-row textarea:focus { border-color: var(--dark); }
+
+  .notes-add-btn {
+    padding: 6px 10px;
+    font-size: 10px;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    background: var(--black);
+    color: var(--white);
+    border: 1px solid var(--black);
+    cursor: pointer;
+    align-self: flex-start;
+    white-space: nowrap;
+  }
+
+  .notes-add-btn:hover { background: var(--dark); }
+
+  .notes-log {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .note-entry {
+    border: 1px solid var(--border);
+    background: var(--off-white);
+    padding: 8px 10px;
+    position: relative;
+  }
+
+  .note-entry-date {
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--dim);
+    margin-bottom: 4px;
+  }
+
+  .note-entry-text {
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--black);
+    white-space: pre-wrap;
+  }
+
+  .note-entry-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: none;
+    border: none;
+    font-size: 10px;
+    color: var(--mid);
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .note-entry-delete:hover { color: var(--black); }
+
   .notes-saved {
     font-size: 10px;
     color: var(--dim);
@@ -1630,7 +1717,19 @@ function showRecipe(id) {
       <div>
         <div class="notes-panel">
           <div class="notes-panel-label">Notes to Self</div>
-          <textarea class="notes-textarea" id="notes-field" placeholder="Your personal notes about this recipe..." onblur="saveNotes('${r.id}')" oninput="markNotesDirty()">${(r.notes || '').replace(/`/g, '\`')}</textarea>
+          <div class="notes-add-row">
+            <textarea id="notes-new-text" placeholder="Add a note..."></textarea>
+            <button class="notes-add-btn" onclick="addNote('${r.id}')">Add</button>
+          </div>
+          <div class="notes-log" id="notes-log">
+            ${((r.notes_log || [])).map((n, i) => `
+              <div class="note-entry">
+                <div class="note-entry-date">${n.date}</div>
+                <div class="note-entry-text">${n.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                <button class="note-entry-delete" onclick="deleteNote(event,'${r.id}',${i})">remove</button>
+              </div>
+            `).join('')}
+          </div>
           <div class="notes-saved" id="notes-status"></div>
         </div>
 
@@ -1796,22 +1895,53 @@ function saveEdit(id) {
   showRecipe(id);
 }
 
-function markNotesDirty() {
-  const el = document.getElementById('notes-status');
-  if (el) el.textContent = '';
-}
-
-function saveNotes(id) {
-  const field = document.getElementById('notes-field');
+function addNote(id) {
+  const field = document.getElementById('notes-new-text');
   if (!field) return;
+  const text = field.value.trim();
+  if (!text) return;
   const idx = recipes.findIndex(x => x.id === id);
   if (idx === -1) return;
-  recipes[idx].notes = field.value;
+  if (!recipes[idx].notes_log) recipes[idx].notes_log = [];
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  recipes[idx].notes_log.unshift({ date, text });
   save(recipes[idx]);
+  field.value = '';
+  // Re-render log
+  const log = document.getElementById('notes-log');
+  if (log) {
+    log.innerHTML = recipes[idx].notes_log.map((n, i) => `
+      <div class="note-entry">
+        <div class="note-entry-date">${n.date}</div>
+        <div class="note-entry-text">${n.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+        <button class="note-entry-delete" onclick="deleteNote(event,'${id}',${i})">remove</button>
+      </div>
+    `).join('');
+  }
   const el = document.getElementById('notes-status');
   if (el) {
     el.textContent = 'Saved';
     setTimeout(() => { if (el) el.textContent = ''; }, 2000);
+  }
+}
+
+function deleteNote(event, id, index) {
+  event.stopPropagation();
+  if (!confirm('Are you sure you want to scrape the board?')) return;
+  const idx = recipes.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  recipes[idx].notes_log.splice(index, 1);
+  save(recipes[idx]);
+  // Re-render log
+  const log = document.getElementById('notes-log');
+  if (log) {
+    log.innerHTML = recipes[idx].notes_log.map((n, i) => `
+      <div class="note-entry">
+        <div class="note-entry-date">${n.date}</div>
+        <div class="note-entry-text">${n.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+        <button class="note-entry-delete" onclick="deleteNote(event,'${id}',${i})">remove</button>
+      </div>
+    `).join('');
   }
 }
 
