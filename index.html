@@ -1691,9 +1691,9 @@ function showRecipe(id) {
           <div class="heat-slider-block">
             <div class="heat-slider-title">Temperature</div>
             <div class="heat-slider-wrap">
-              <input type="range" class="heat-slider" id="slider-temp" min="0" max="4" step="1" value="${r.heat_temp !== undefined ? r.heat_temp : 2}" oninput="updateSliderTrack(this)" onchange="saveSlider('${r.id}','heat_temp',this.value)">
+              <input type="range" class="heat-slider" id="slider-temp" min="0" max="4" step="1" value="${r.heat_temp !== undefined ? 4 - r.heat_temp : 2}" oninput="updateSliderTrack(this)" onchange="saveSlider('${r.id}','heat_temp', 4 - this.value)">
               <div class="heat-slider-labels">
-                <span>hot!</span><span>warm</span><span>room</span><span>chilled</span><span>cold!</span>
+                <span>cold</span><span>chilled</span><span>room</span><span>warm</span><span>hot!</span>
               </div>
             </div>
           </div>
