@@ -1438,7 +1438,11 @@ Return only valid JSON.`;
 
   const data = await res.json();
   let text = data.content[0].text.trim();
-  text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '');
+  // Strip markdown fences
+  text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
+  // Extract JSON object if there's surrounding text
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) text = jsonMatch[0];
   return JSON.parse(text);
 }
 
