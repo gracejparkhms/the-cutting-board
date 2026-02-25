@@ -1215,7 +1215,7 @@
         <textarea id="m-steps" rows="6" placeholder="Preheat oven to 350F.&#10;Mix dry ingredients."></textarea>
       </div>
       <div>
-        <div class="field-label">Notes from Others (prefix: PROCESS: / FLAVOR: / NOTE OF CAUTION:)</div>
+        <div class="field-label">Notes from Others (prefix: PROCESS: / FLAVOR: / SUBSTITUTION:)</div>
         <textarea id="m-comments" rows="4" placeholder="PROCESS: use store bought stock&#10;FLAVOR: add smoked paprika"></textarea>
       </div>
       <div class="modal-actions">
@@ -1652,7 +1652,7 @@ function showRecipe(id) {
     `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-text">${step}</div></div>`
   ).join('');
 
-  const commentTypeLabel = { worked: 'Process', didnt: 'Note of Caution', tip: 'Flavor' };
+  const commentTypeLabel = { worked: 'Process', didnt: 'Substitution', tip: 'Flavor' };
   const comments = (r.comment_highlights || []).map(c => {
     const type = c.type || 'tip';
     return `<div class="comment-item ${type}"><div class="comment-type">${commentTypeLabel[type] || 'Note'}</div>${c.text}</div>`;
@@ -1781,7 +1781,7 @@ function editRecipe(id) {
 
   const stepsText = (r.steps || []).join('\n');
 
-  const commentTypeLabel = { worked: 'PROCESS', didnt: 'NOTE OF CAUTION', tip: 'FLAVOR' };
+  const commentTypeLabel = { worked: 'PROCESS', didnt: 'SUBSTITUTION', tip: 'FLAVOR' };
   const commentsText = (r.comment_highlights || []).map(c =>
     (commentTypeLabel[c.type] || 'TIP') + ': ' + c.text
   ).join('\n');
@@ -1829,16 +1829,12 @@ function editRecipe(id) {
     </div>
 
     <div class="edit-section">
-      <div class="field-label">Notes from Others (prefix: PROCESS: / FLAVOR: / NOTE OF CAUTION:)</div>
+      <div class="field-label">Notes from Others (prefix: PROCESS: / FLAVOR: / SUBSTITUTION:)</div>
       <textarea class="edit-field" id="e-comments" rows="5">${commentsText}</textarea>
     </div>
 
     ${r.source_url ? `<div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.4px;margin-top:8px;">Source: <a href="${r.source_url}" target="_blank" style="color:var(--link)">${r.source_name || r.source_url}</a>${addedDate ? ' &mdash; Added ' + addedDate : ''}</div>` : ''}
 
-    <div class="edit-section">
-      <div class="field-label">Notes to Self</div>
-      <textarea class="edit-field" id="e-notes" rows="4">${(r.notes || '').replace(/`/g, '\`')}</textarea>
-    </div>
   `;
 }
 
@@ -1854,13 +1850,12 @@ function saveEdit(id) {
   r.servings = parseInt(document.getElementById('e-servings').value) || 0;
   r.tags = document.getElementById('e-tags').value.split(',').map(t => t.trim()).filter(Boolean);
   r.steps = document.getElementById('e-steps').value.split('\n').map(s => s.trim()).filter(Boolean);
-  r.notes = document.getElementById('e-notes').value;
 
   // Parse comments
   const commentLines = document.getElementById('e-comments').value.split('\n').filter(l => l.trim());
   r.comment_highlights = commentLines.map(l => {
     if (l.toUpperCase().startsWith('PROCESS:')) return { type: 'worked', text: l.slice(19).trim() };
-    if (l.toUpperCase().startsWith('NOTE OF CAUTION:')) return { type: 'didnt', text: l.slice(14).trim() };
+    if (l.toUpperCase().startsWith('SUBSTITUTION:')) return { type: 'didnt', text: l.slice(14).trim() };
     return { type: 'tip', text: l.replace(/^FLAVOR:/i, '').trim() };
   });
 
@@ -2033,7 +2028,7 @@ function saveManualRecipe() {
   const commentLines = document.getElementById('m-comments').value.split('\n').filter(l => l.trim());
   const comments = commentLines.map(l => {
     if (l.toUpperCase().startsWith('PROCESS:')) return { type: 'worked', text: l.slice(19).trim() };
-    if (l.toUpperCase().startsWith('NOTE OF CAUTION:')) return { type: 'didnt', text: l.slice(14).trim() };
+    if (l.toUpperCase().startsWith('SUBSTITUTION:')) return { type: 'didnt', text: l.slice(14).trim() };
     return { type: 'tip', text: l.replace(/^FLAVOR:/i, '').trim() };
   });
 
