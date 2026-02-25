@@ -1858,8 +1858,8 @@ function saveEdit(id) {
   // Parse comments
   const commentLines = document.getElementById('e-comments').value.split('\n').filter(l => l.trim());
   r.comment_highlights = commentLines.map(l => {
-    if (l.toUpperCase().startsWith('PROCESS:')) return { type: 'worked', text: l.slice(19).trim() };
-    if (l.toUpperCase().startsWith('SUBSTITUTION:')) return { type: 'didnt', text: l.slice(14).trim() };
+    if (l.toUpperCase().startsWith('PROCESS:')) return { type: 'worked', text: l.slice(8).trim() };
+    if (l.toUpperCase().startsWith('SUBSTITUTION:')) return { type: 'didnt', text: l.slice(13).trim() };
     return { type: 'tip', text: l.replace(/^FLAVOR:/i, '').trim() };
   });
 
@@ -2031,8 +2031,8 @@ function saveManualRecipe() {
   const steps = document.getElementById('m-steps').value.split('\n').filter(l => l.trim());
   const commentLines = document.getElementById('m-comments').value.split('\n').filter(l => l.trim());
   const comments = commentLines.map(l => {
-    if (l.toUpperCase().startsWith('PROCESS:')) return { type: 'worked', text: l.slice(19).trim() };
-    if (l.toUpperCase().startsWith('SUBSTITUTION:')) return { type: 'didnt', text: l.slice(14).trim() };
+    if (l.toUpperCase().startsWith('PROCESS:')) return { type: 'worked', text: l.slice(8).trim() };
+    if (l.toUpperCase().startsWith('SUBSTITUTION:')) return { type: 'didnt', text: l.slice(13).trim() };
     return { type: 'tip', text: l.replace(/^FLAVOR:/i, '').trim() };
   });
 
