@@ -831,22 +831,26 @@
   }
 
   .heat-slider-labels {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    position: relative;
+    height: 14px;
     margin-top: 6px;
-    padding: 0 7px;
   }
 
   .heat-slider-labels span {
+    position: absolute;
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--dim);
-    text-align: center;
+    transform: translateX(-50%);
+    white-space: nowrap;
   }
 
-  .heat-slider-labels span:first-child { text-align: left; }
-  .heat-slider-labels span:last-child { text-align: right; }
+  .heat-slider-labels span:nth-child(1) { left: 0%; transform: translateX(0); }
+  .heat-slider-labels span:nth-child(2) { left: 25%; transform: translateX(-50%); }
+  .heat-slider-labels span:nth-child(3) { left: 50%; transform: translateX(-50%); }
+  .heat-slider-labels span:nth-child(4) { left: 75%; transform: translateX(-50%); }
+  .heat-slider-labels span:nth-child(5) { left: 100%; transform: translateX(-100%); }
 
   /* Import mode toggle */
   .import-tabs {
