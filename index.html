@@ -1215,8 +1215,8 @@
         <textarea id="m-steps" rows="6" placeholder="Preheat oven to 350F.&#10;Mix dry ingredients."></textarea>
       </div>
       <div>
-        <div class="field-label">Notes from Others (prefix: AN EASIER PROCESS: / A DIFFERENT FLAVOR: / WATCH OUT FOR:)</div>
-        <textarea id="m-comments" rows="4" placeholder="AN EASIER PROCESS: use store bought stock&#10;A DIFFERENT FLAVOR: add smoked paprika"></textarea>
+        <div class="field-label">Notes from Others (prefix: PROCESS: / FLAVOR: / NOTE OF CAUTION:)</div>
+        <textarea id="m-comments" rows="4" placeholder="PROCESS: use store bought stock&#10;FLAVOR: add smoked paprika"></textarea>
       </div>
       <div class="modal-actions">
         <button class="btn" onclick="closeModal()">Cancel</button>
@@ -1652,7 +1652,7 @@ function showRecipe(id) {
     `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-text">${step}</div></div>`
   ).join('');
 
-  const commentTypeLabel = { worked: 'An Easier Process', didnt: 'Watch Out For', tip: 'A Different Flavor' };
+  const commentTypeLabel = { worked: 'Process', didnt: 'Note of Caution', tip: 'Flavor' };
   const comments = (r.comment_highlights || []).map(c => {
     const type = c.type || 'tip';
     return `<div class="comment-item ${type}"><div class="comment-type">${commentTypeLabel[type] || 'Note'}</div>${c.text}</div>`;
@@ -1781,7 +1781,7 @@ function editRecipe(id) {
 
   const stepsText = (r.steps || []).join('\n');
 
-  const commentTypeLabel = { worked: 'AN EASIER PROCESS', didnt: 'WATCH OUT FOR', tip: 'A DIFFERENT FLAVOR' };
+  const commentTypeLabel = { worked: 'PROCESS', didnt: 'NOTE OF CAUTION', tip: 'FLAVOR' };
   const commentsText = (r.comment_highlights || []).map(c =>
     (commentTypeLabel[c.type] || 'TIP') + ': ' + c.text
   ).join('\n');
@@ -1829,7 +1829,7 @@ function editRecipe(id) {
     </div>
 
     <div class="edit-section">
-      <div class="field-label">Notes from Others (prefix: AN EASIER PROCESS: / A DIFFERENT FLAVOR: / WATCH OUT FOR:)</div>
+      <div class="field-label">Notes from Others (prefix: PROCESS: / FLAVOR: / NOTE OF CAUTION:)</div>
       <textarea class="edit-field" id="e-comments" rows="5">${commentsText}</textarea>
     </div>
 
@@ -1859,9 +1859,9 @@ function saveEdit(id) {
   // Parse comments
   const commentLines = document.getElementById('e-comments').value.split('\n').filter(l => l.trim());
   r.comment_highlights = commentLines.map(l => {
-    if (l.toUpperCase().startsWith('AN EASIER PROCESS:')) return { type: 'worked', text: l.slice(19).trim() };
-    if (l.toUpperCase().startsWith('WATCH OUT FOR:')) return { type: 'didnt', text: l.slice(14).trim() };
-    return { type: 'tip', text: l.replace(/^A DIFFERENT FLAVOR:/i, '').trim() };
+    if (l.toUpperCase().startsWith('PROCESS:')) return { type: 'worked', text: l.slice(19).trim() };
+    if (l.toUpperCase().startsWith('NOTE OF CAUTION:')) return { type: 'didnt', text: l.slice(14).trim() };
+    return { type: 'tip', text: l.replace(/^FLAVOR:/i, '').trim() };
   });
 
   // Parse ingredients - support # Section headers
@@ -2032,9 +2032,9 @@ function saveManualRecipe() {
   const steps = document.getElementById('m-steps').value.split('\n').filter(l => l.trim());
   const commentLines = document.getElementById('m-comments').value.split('\n').filter(l => l.trim());
   const comments = commentLines.map(l => {
-    if (l.toUpperCase().startsWith('AN EASIER PROCESS:')) return { type: 'worked', text: l.slice(19).trim() };
-    if (l.toUpperCase().startsWith('WATCH OUT FOR:')) return { type: 'didnt', text: l.slice(14).trim() };
-    return { type: 'tip', text: l.replace(/^A DIFFERENT FLAVOR:/i, '').trim() };
+    if (l.toUpperCase().startsWith('PROCESS:')) return { type: 'worked', text: l.slice(19).trim() };
+    if (l.toUpperCase().startsWith('NOTE OF CAUTION:')) return { type: 'didnt', text: l.slice(14).trim() };
+    return { type: 'tip', text: l.replace(/^FLAVOR:/i, '').trim() };
   });
 
   const tags = document.getElementById('m-tags').value.split(',').map(t => t.trim()).filter(Boolean);
